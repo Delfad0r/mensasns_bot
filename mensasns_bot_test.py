@@ -190,10 +190,12 @@ class MyBot:
 email = input('SNS email: ')
 password = getpass.getpass()
 channel = '@FaedoGuerraBotTestChannel'
-token = '681965487:AAHvBv-1IBsQhGlBfx2JK7gY5qybfiXciB0'
+token = open('token_test.txt', 'r').read().strip()
 
-bot = MyBot(token, {'normal' : channel, 'apple' : channel, 'narrow' : channel }, email, password)
-try:
-    bot.run()
-finally:
-    del bot
+if __name__ == '__main__':
+    bot = MyBot(token, {'normal' : channel, 'apple' : channel, 'narrow' : channel }, email, password)
+    try:
+        bot.run()
+    finally:
+        bot.driver.close()
+        del bot

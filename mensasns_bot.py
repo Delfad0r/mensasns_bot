@@ -196,4 +196,5 @@ bot = MyBot(token, channels, email, password)
 try:
     bot.run()
 finally:
+    bot.driver.close()
     del bot
