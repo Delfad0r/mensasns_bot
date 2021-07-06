@@ -2,8 +2,7 @@
 # mensasns_bot_test.py
 
 # Token
-token.txt
-token_test.txt
+token*.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
