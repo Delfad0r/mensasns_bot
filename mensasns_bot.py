@@ -28,11 +28,11 @@ class MyDriver(Chrome):
     def login(self, email, password):
         self.get(self.base_url)
         data = {'email' : email, 'password' : password, 'login' : 'submit'}
-        self.request('POST', f'{self.base_url}/index.php', data = data, verify = False, timeout = 10)
+        self.request('POST', self.base_url + '/index.php', data = data, verify = False, timeout = 10)
     def get_resource_url(self, which, date, line = None):
-        res = f'{self.base_url}/schedule.php?sid={self.SID[which]}&sd={date.isoformat()}'
+        res = '{}/schedule.php?sid={}&sd={}'.format(self.base_url, self.SID[which], date.isoformat())
         if line is not None:
-            res += f'&rid={self.RID[which][line - 1]}'
+            res += '&rid=' + self.RID[which][line - 1]
         return res
     def get_reserve_url(self, which, line, begin, end):
         format_time = lambda t: t.strftime('%Y-%m-%d %H:%M:%S')
@@ -48,13 +48,13 @@ class MyDriver(Chrome):
         self.get(self.get_resource_url(which, date))
         res = []
         for rid in self.RID[which]:
-            WebDriverWait(self, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, f'.reservations[data-resourceid="{rid}"]')))
-            selector = f'.reservations[data-resourceid="{rid}"] > div[data-resid] > span'
+            WebDriverWait(self, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, '.reservations[data-resourceid="%s"]' % rid)))
+            selector = '.reservations[data-resourceid="%s"] > div[data-resid] > span' % rid
             spans = self.find_elements_by_css_selector(selector)
             res.append(list(Counter(s.text for s in spans).items()))
         return res
     def logout(self):
-        self.get(f'{self.base_url}/logout.php')
+        self.get(self.base_url + '/logout.php')
         self.delete_all_cookies()
         
 def get_progress_bar(perc, width):
@@ -143,7 +143,7 @@ class MyBot:
         b, e = self.get_meal_time(which, date)
         for l, d in zip([1, 2], data):
             url = self.driver.get_resource_url(which, date, l)
-            header = f'*[{date.strftime("%A %d/%m")} \\- {self.MEALS[which]}, line {l}]({url})*'
+            header = '*[{} \\- {}, line {}]({})*'.format(date.strftime("%A %d/%m"), self.MEALS[which], l, url)
             res['normal'].append(header)
             res['apple'].append(header)
             res['narrow'].append(header)
@@ -168,22 +168,22 @@ class MyBot:
                         symbol = '⚠️'
                     else:
                         symbol = '🟢'
-                    time_str = f'{format_time(begin_t)}\\-{format_time(end_t)}'
-                    perc_str = f'{n:2}/{self.SLOTS[(which, l)]}'
+                    time_str = '{}\\-{}'.format(format_time(begin_t), format_time(end_t))
+                    perc_str = '{:2}/{}'.format(n, self.SLOTS[(which, l)])
                     if c in ['apple', 'narrow']:
                         time_str = make_monospace_digits(time_str)
                         perc_str = make_monospace_digits(perc_str)
                     if end_t > datetime.datetime.now():
                         url = self.driver.get_reserve_url(which, l, begin_t, end_t)
-                        s = f'*[{time_str}]({url})*'
+                        s = '*[{}]({})*'.format(time_str, url)
                     else:
-                        s = f'*{time_str}*'
+                        s = '*%s*' % time_str
                         symbol = '➖'
                     if c in ['normal', 'apple']:
                         width = 8
                     elif c == 'narrow':
                         width = 5
-                    res[c].append(f'{s} `{get_progress_bar(n / self.SLOTS[(which, l)], width)}{symbol}` `{perc_str}`')
+                    res[c].append('{} `{}{}` `{}`'.format(s, get_progress_bar(n / self.SLOTS[(which, l)], width), symbol, perc_str))
                 res[c].append('')
         return { c : '\n'.join(s) for c, s in res.items() }
 
