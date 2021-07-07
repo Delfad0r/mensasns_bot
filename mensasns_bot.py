@@ -84,7 +84,7 @@ class MyBot:
         self.active_messages = { c : {} for c in channels}
         driver_options = Options()
         driver_options.headless = True
-        self.driver = MyDriver(options = driver_options)
+        self.driver = MyDriver('../chromedriver', options = driver_options)
         self.MEALS = {'lunch' : 'Lunch', 'dinner' : 'Dinner'}
         self.SLOTS = {('lunch', 1) : 40, ('lunch', 2) : 30, ('dinner', 1) : 40, ('dinner', 2) : 30}
         self.TURN = datetime.timedelta(minutes = 15)
