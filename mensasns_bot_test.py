@@ -49,7 +49,7 @@ class MyDriver(Chrome):
         res = []
         for rid in self.RID[which]:
             WebDriverWait(self, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, f'.reservations[data-resourceid="{rid}"]')))
-            selector = f'.reservations[data-resourceid="{rid}"] > div[data-resid] > span'
+            selector = f'.reservations[data-resourceid="{rid}"] > div[class^="reserved"] > span'
             spans = self.find_elements_by_css_selector(selector)
             res.append(list(Counter(s.text for s in spans).items()))
         return res
@@ -98,14 +98,21 @@ class MyBot:
         self.updater.job_queue.run_repeating(lambda c: self.send_updates(), 60, first = 1)
         self.updater.start_polling()
         self.updater.idle()
-    def get_meal_time(self, which, date):
+    def get_meal_time(self, which, date, line):
         if date.weekday() in [5, 6]:
+            if line == 2:
+                return None, None
             if which == 'lunch':
                 b, e = '12:30', '13:45'
             else:
                 b, e = '19:30', '20:30'
         else:
-            if which == 'lunch':
+            if line == 2:
+                if which == 'lunch':
+                    b, e = '12:45', '13:45'
+                else:
+                    return None, None
+            elif which == 'lunch':
                 b, e = '12:30', '14:15'
             else:
                 b, e = '19:30', '20:45'
@@ -117,7 +124,7 @@ class MyBot:
         for day_offset in [0, 1]:
             date = datetime.date.today() + datetime.timedelta(days = day_offset)
             for which in ['lunch', 'dinner']:
-                b, e = self.get_meal_time(which, date)
+                b, e = self.get_meal_time(which, date, 1)
                 if(e > now and b < now + datetime.timedelta(days = 1)):
                     relevant_meals.append((date, which))
         relevant_meals = relevant_meals[: 2]
@@ -140,8 +147,10 @@ class MyBot:
         self.driver.login(self.email, self.password)
         data = self.driver.get_schedule_data(which, date)
         res = { 'normal' : [], 'apple' : [], 'narrow' : [] }
-        b, e = self.get_meal_time(which, date)
         for l, d in zip([1, 2], data):
+            b, e = self.get_meal_time(which, date, l)
+            if b is None:
+                continue
             url = self.driver.get_resource_url(which, date, l)
             header = f'*[{date.strftime("%A %d/%m")} \\- {self.MEALS[which]}, line {l}]({url})*'
             res['normal'].append(header)
@@ -154,7 +163,7 @@ class MyBot:
                 t += self.TURN
             for f, n in d:
                 t = datetime.datetime.strptime(f.split('-')[0], '%I:%M %p').time()
-                assert(t in slots)
+                assert t in slots, '%s %s' % (str(t), str(slots))
                 slots[t] = n
             slot_strings = []
             format_time = lambda t: t.strftime('%H:%M')
