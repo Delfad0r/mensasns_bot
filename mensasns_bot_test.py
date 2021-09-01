@@ -48,6 +48,7 @@ class MyDriver(Chrome):
         self.get(self.get_resource_url(which, date))
         res = []
         for rid in self.RID[which]:
+            print(f'Fetching data for {date} {which}')
             WebDriverWait(self, 20).until(EC.visibility_of_element_located((By.CSS_SELECTOR, f'.reservations[data-resourceid="{rid}"]')))
             selector = f'.reservations[data-resourceid="{rid}"] > div[class^="reserved"] > span'
             spans = self.find_elements_by_css_selector(selector)
