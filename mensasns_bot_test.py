@@ -87,7 +87,7 @@ class MyBot:
         driver_options.headless = True
         self.driver = MyDriver(options = driver_options)
         self.MEALS = {'lunch' : 'Lunch', 'dinner' : 'Dinner'}
-        self.SLOTS = {('lunch', 1) : 45, ('lunch', 2) : 35, ('dinner', 1) : 45, ('dinner', 2) : 35}
+        self.SLOTS = {('lunch', 1) : 40, ('lunch', 2) : 35, ('dinner', 1) : 40, ('dinner', 2) : 35}
         self.TURN = datetime.timedelta(minutes = 15)
     def __del__(self):
         for d in self.active_messages.values():
