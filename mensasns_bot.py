@@ -102,8 +102,11 @@ class MyBot:
     def get_meal_time(self, which, date, line):
         if date.weekday() in [5, 6]:
             if line == 2:
-                return None, None
-            if which == 'lunch':
+                if which == 'lunch':
+                    b, e = '12:30', '13:30'
+                else:
+                    b, e = '19:30', '20:30'
+            elif which == 'lunch':
                 b, e = '12:30', '13:45'
             else:
                 b, e = '19:30', '20:30'
@@ -112,7 +115,7 @@ class MyBot:
                 if which == 'lunch':
                     b, e = '12:45', '13:45'
                 else:
-                    return None, None
+                    b, e = '19:30', '20:30'
             elif which == 'lunch':
                 b, e = '12:30', '14:15'
             else:
